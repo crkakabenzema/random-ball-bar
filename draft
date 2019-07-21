@@ -1,0 +1,148 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Canvas</title>
+    <style>
+
+    </style>
+  </head>
+  <body>
+
+    <canvas class="myCanvas">
+    </canvas>
+
+    <script>	
+      var canvas = document.querySelector('.myCanvas');
+      var width = canvas.width = window.innerWidth;
+      var height = canvas.height = window.innerHeight;
+      var ctx = canvas.getContext('2d');
+      ctx.fillStyle = 'rgb(0,0,0)';
+      ctx.fillRect(0,0,width,height);
+     
+	  
+      // store mouse pointer coordinates, and whether the button is pressed
+      var curX;
+      var curY;
+      var pressed = false;
+      // update mouse pointer coordinates
+      document.onmousemove = function(e) {
+        curX = (window.Event) ? e.pageX : e.clientX + (document.documentElement.scrollLeft ? document.documentElement.scrollLeft : document.body.scrollLeft);
+        curY = (window.Event) ? e.pageY : e.clientY + (document.documentElement.scrollTop ? document.documentElement.scrollTop : document.body.scrollTop);
+      }
+      canvas.onmousedown = function() {
+        pressed = true;
+      }
+
+
+      function random(min,max){
+      return Math.floor(Math.random()*(max-min)) + min;	
+	}
+	
+	function randomColor(){
+	  return 'rgb(' +
+	         random(0,255) + ', ' +
+			 random(0,255) + ', ' +
+			 random(0,255) + ')';
+	}
+	
+	function Ball(x,y,velX,velY,color,size){
+	   this.x = x;      // this这个引用指代对象并储存着它的值
+	   this.y = y;
+	   this.velX = velX;
+	   this.velY = velY;
+	   this.color = color;
+	   this.size = size;      
+	}
+	
+	Ball.prototype.draw = function(){
+	   ctx.beginPath();     //当前所在位置绘制路径
+	   ctx.fillStyle = this.color;
+	   ctx.arc(this.x,this.y,this.size,0,2*Math.PI,false);    //六个参数，圆心的坐标，圆半径，弧的起、止角度，绘制方向
+       ctx.fill();
+	}
+	
+	Ball.prototype.update = function(){
+	  if ((this.x + this.size) >= width){
+	    this.velX = -(this.velX);
+	  }
+	  
+	  if ((this.x - this.size) <= 0){
+	    this.velX = -(this.velX);
+	  }
+	
+	  if ((this.y + this.size) >= height){
+	    this.velY = -(this.velY);
+	  }
+	  
+	  if ((this.y - this.size) <= 0){
+	    this.velY = -(this.velY);
+	  }
+	 
+	  if ((curX < this.x < curX + 100) && ( this.y + this.size >= height-50)){
+	    this.velY = -(this.velY);
+	  }
+	  
+	  this.x += this.velX;
+	  this.y += this.velY;
+	}
+	
+	Ball.prototype.collisionDetect = function() {
+	  for (var j=0; j < balls.length; j++){
+	    if (!(this === balls[j])) {
+		  var dx = this.x - balls[j].x;
+		  var dy = this.y - balls[j].y;
+		  var distance = Math.sqrt(dx*dx + dy*dy)
+		  
+		  if(distance < this.size + balls[j].size){
+		    //balls[j].color = this.color = randomColor();
+			this.velX = -this.velX;
+			this.velY = -this.velY;
+			balls[j].velX = -balls[j].velX;
+			balls[j].velY = -balls[j].velY;
+		  }
+		  
+		}
+	  }
+	}
+	
+	var balls = [];
+
+      function loop() {
+		ctx.fillStyle = 'rgba(0,0,0,0.25)';   //设置为半透明的颜色，用来遮住之前的视图。
+	    ctx.fillRect(0,0,width,height);
+		
+		while(balls.length < 25){
+	    var gen = 0;
+	    while (gen===0){
+		var ball = new Ball(
+		  random(0,width),
+		  random(0,height),
+		  random(-7,7),
+		  random(-7,7),
+		  randomColor(),
+		  random(10,20)
+		);
+		  if (ball[2] !==0 && ball[3] !==0){
+		  gen = 1;}
+		}
+		balls.push(ball);  //添加元素到数组
+	  }
+	
+	  for (var i=0;i< balls.length;i++){
+	    balls[i].draw();
+		balls[i].update();
+		balls[i].collisionDetect();
+	  }
+		
+		if(pressed) {
+          ctx.fillStyle = 'rgb(255,100,0)';
+          ctx.beginPath();
+          ctx.fillRect(curX, height-50, 100, 30);  //（x,y,width,height）
+        }
+        requestAnimationFrame(loop);
+      }
+	  
+      loop();
+    </script>
+  </body>
+</html>
